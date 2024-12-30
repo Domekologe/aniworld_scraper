@@ -1,61 +1,58 @@
 # Anime/Serien Scraper
 
-Scraper for the Anime Hoster Aniworld and the Serien Hoster SerienStream
-
-This tool will download either all Seasons and Episodes of an anime from Aniworld.to
-or it will download all Seasons and Episodes of a serie from S.to
+Scraper for the Anime Hoster Aniworld.to and the Series Hoster S.to
 
 How to use:
 
 - Clone the Repo
 - `pip install -r requirements.txt`
-- download or install [ffmpeg](https://ffmpeg.org) (If you download it put it in the root folder or src folder)
+- download or install [ffmpeg](https://ffmpeg.org) (If you download it put it in the src folder)
 
-- On Unix for easy use take the _run.sh_ file and edit the desired values
-- On Windows for easy use take the _run.bat_ file and past the desired values in the command line
+There are two main way to run this script.
 
-Manual usage with python:
-- You can either edit the `src/constants.py` file or pass the values as arguments to the `main.py` file
+## Manual with a UI:
 
-Supported Arguments:
-- `--type <TYPE>`: Either "serie" or "anime" to switch between websites to scrape.
-- `--name <NAME>`: The name of the anime or serie you want to download.
-- `--lang <LANGUAGE>`: The language you want to download. Normaly "Deutsch", "Ger-Sub", "English" or "Eng-Sub".
-- `--dl-mode <DownloadMode>`: The type of content you want to download. Valid arguments are: Movies, Series, All.
-- `--season-override <SeasonOverride>`: Specify which season to Download. `0` download ALL seasons, 
-`NUM` download only the specified season, `NUM+` download this season and beyond.
-- `--provider <ProviderOverride>`: Specify the provider to use. Valid arguments are: VOE, Streamtape and Vidoza.
+- Go into the `src` folder.
+- Run `python start_app.py`
 
-## Manual download
-If you get a error or only need a specific episode you can download it manually with the `Manual_download.py` script.
 
-Run it with the same arguments as you would main.py.
-- Edit the `src/constants.py` and change the `episode_override` to the desired episode.
-- Run `python Manual_download.py <TYPE> <NAME> <LANGUAGE> <DownloadMode> [SeasonOverride] [ProviderOverride]`
+## Automatic with CLI arguments:
 
-## Values/Overrides
+- Go into the `src` folder.
+- Run `python start_app.py` with your arguments.
 
-### Required:
+### Arguments:
 
-- type_of_media: Either "serie" or "anime" so the tool uses the correspondig url
-- name: Enter the anime or serie name you want to download. It has to be in the naming scheme _word-word-word_.
-- language: Determine the desired language of the files. Common options are: "Deutsch", "Ger-Sub" and "English"
+- `--help` : Shows the help message
 
-### Optional:
+#### Required Arguments:
 
-- dlMode: Choose the type of Content you want to download. Valid arguments are: Movies, Series, All. Default is Series.
-- season_override: Specify which season to Download. 0 is the Default and will download all Seasons.
+- `--media=anime|serie` : Choose between Anime and Series
+- `--name=NameOfTheShow/Anime/Movie` : Name of the Show/Anime/Movie
+- `--download_lang=Deutsch|Ger-Sub|English` : Choose the language of the show
+- `--dl-mode=Series|Movies|All` : Choose weather to download Series Episodes, Movies or both
 
-## Constants
+EXAMPLE: `python start_app.py --media=anime --name=angels-of-death --download_lang=Deutsch --dl-mode=All`
 
-- episode_override: Specify which episode to start downloading. 0 is the Default and will download all Episodes.
-- ddos_protection_calc: How many episodes to download before waiting 60 seconds. Default 4.
-- ddos_wait_timer: How long to wait until next download batch starts. Default 60.
-- output_path: Specify the output path. Default is the current working directory/Name-Of-Series.
+#### Optional Arguments:
+
+- `--season_override=SeasonNumber` : Choose which season to download. 
+(You can use Num+ to download all seasons starting from Num)
+- `--provider=VOE|Streamtape|Vidoza|SpeedFiles` : Choose the provider to download from
+- `--episode_override=EpisodeNumber` : Choose which episode to download.
+- `--max_concurrent_downloads=Number` : Choose the maximum number of concurrent downloads
+- `--max_retries=Number` : Choose the maximum number of retries for each download.
+- `--wait_time=Number` : Choose the time to wait when max concurrent downloads are reached. 
+(will not work if disable_wait_threads is set to True)
+- `--disable_wait_threads=True/False` : Choose weather to wait for downloads to finish before starting new ones or not.
+- `--output_dir=Path` : Choose the output directory for the downloads.
+- `--debug_logging=True/False` : Choose weather to enable debug logging.
+
+EXAMPLE: `python start_app.py --media=anime --name=angels-of-death --download_lang=Deutsch --dl-mode=All --season_override=1 --provider=VOE --episode_override=1 --max_concurrent_downloads=5 --max_retries=3 --wait_time=30 --disable_wait_threads=False --output_dir=output --debug_logging=True`
 
 ## Support
 
-Please create a Issue.
+Please create an Issue.
 
 ## Special Thanks:
 
