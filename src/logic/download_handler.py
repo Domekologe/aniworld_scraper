@@ -1,12 +1,14 @@
+import random
+import string
 import subprocess
 import time
 import urllib.request
 import re
 from urllib.error import URLError, HTTPError
+from urllib.parse import urlparse
 from threading import Thread, active_count
 import sys
 from jsbeautifier.unpackers import UnpackingError
-
 from bs4 import BeautifulSoup
 
 from logic.logging_handler import Logger
@@ -18,6 +20,8 @@ VOE_PATTERNS = [re.compile(r"'hls': '(?P<url>.+)'"),
                 re.compile(r'prompt\("Node",\s*"(?P<url>[^"]+)"'),
                 re.compile(r"window\.location\.href = '([^']+)'")]
 STREAMTAPE_PATTERN = re.compile(r'get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[^&\'\s]+&token=[^&\'\s]+\'')
+DOODSTREAM_PATTERN_URL = re.compile(r"'(?P<url>/pass_md5/[^'.*]*)'")
+DOODSTREAM_PATTERN_TOKEN = re.compile(r"token=(?P<token>[^&.*]*)&")
 
 # ------------------------------------------------------- #
 # Code from https://github.com/beautifier/js-beautify/blob/main/python/jsbeautifier/unpackers/packer.py
@@ -151,6 +155,7 @@ def http_save_file(url, file_path):
     file_name = file_path.split("/")[-1]
     try:
         logger.log("LOADING", "Downloading: {}".format(file_name))
+        print(url)
         urllib.request.urlretrieve(url, file_path)
         logger.add_success_item({"file_name": file_name})
         return True
@@ -243,39 +248,39 @@ def start_download(url, provider, output_dir):
                 logger.log("DEBUG", "Active Threads: {}".format(active_count()))
                 time.sleep(wait_time)
     hls_providers = ["VOE", "Filemoon"]
-    http_providers = ["Vidoza", "Streamtape", "SpeedFiles"]
+    http_providers = ["Vidoza", "Streamtape", "SpeedFiles", "Doodstream"]
     try:
-        if not provider == "Filemoon":
-            html_page = urllib.request.urlopen(url)
-        else:
-            req = urllib.request.Request(
-                url,
-                data=None,
-                headers={
-                    'Referer' :'https://aniworld.to/',
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
-                }
-            )
-            html_page = urllib.request.urlopen(req)
-        html_page = html_page.read()
+        req = urllib.request.Request(
+            url,
+            data=None,
+            headers={
+                'Referer' :'https://aniworld.to/',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+            }
+        )
+        html_page = urllib.request.urlopen(req)
     except URLError as e:
         logger.log("ERROR", f"{e}")
         logger.log("INFO", "An Error has occured.")
         # todo repeat handler
         return False
     if provider == "Vidoza":
+        html_page = html_page.read().decode('utf-8')
         soup = BeautifulSoup(html_page, features="html.parser")
         cache_link = soup.find("source").get("src")
     elif provider == "SpeedFiles":
+        html_page = html_page.read().decode('utf-8')
         link = re.search(r'src="([^"]+)"', html_page.read().decode('utf-8')).group(1)
         if "store_access" in link:
             cache_link = link
     elif provider == "Streamtape":
         # Obsolete???
+        html_page = html_page.read().decode('utf-8')
         cache_link = STREAMTAPE_PATTERN.search(html_page.read().decode('utf-8'))
         cache_link = "https://" + provider + ".com/" + cache_link.group()[:-1]
 
     elif provider == "Filemoon":
+        html_page = html_page.read().decode('utf-8')
         soup = BeautifulSoup(html_page, features="html.parser")
         stream_link = soup.find("iframe").get("src")
         for script in soup.find_all("script"):
@@ -314,13 +319,42 @@ def start_download(url, provider, output_dir):
         except HTTPError as e:
             logger.log("ERROR", f"{e}")
             logger.log("INFO", "An Error has occured.")
+    elif provider == "Doodstream":
+        logger.log("ERROR", "Doodstream is not supported yet.")
+        return False
+        referer = html_page.geturl()
+        html_page = html_page.read().decode('utf-8')
+        match_url = DOODSTREAM_PATTERN_URL.search(html_page)
+        match_token = DOODSTREAM_PATTERN_TOKEN.search(html_page)
+        if match_url and match_token:
+            logger.log("DEBUG", "Found Doodstream URL.")
+            parsed_url = urlparse(referer)
+            req = urllib.request.Request(
+                f"{parsed_url.scheme}://{parsed_url.netloc}" + match_url.group('url'),
+                data=None,
+                headers={
+                    'Referer': referer,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0'
+                }
+            )
+            req_body = urllib.request.urlopen(req).read().decode('utf-8')
+            dood_hash = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+            current_milli_time = int(round(time.time() * 1000))
+            cache_link = f"{req_body}{dood_hash}?token={match_token.group('token')}&expiry={current_milli_time}"
+            logger.log("DEBUG",f"Video URL: {cache_link}")
+        else:
+            logger.log("ERROR", "Could not find Doodstream URL.")
+            return False
     else:
         logger.log("ERROR", "Provider not supported.")
         return False
-
-    if provider in http_providers:
-        choose_download_mode(cache_link, output_dir, "http")
-    elif provider in hls_providers:
-        choose_download_mode(cache_link, output_dir, "hls")
+    try:
+        if provider in http_providers:
+            choose_download_mode(cache_link, output_dir, "http")
+        elif provider in hls_providers:
+            choose_download_mode(cache_link, output_dir, "hls")
+    except NameError:
+        logger.log("ERROR", "Something went really wrong... Cache link is None.")
+        return False
 
     return True

@@ -40,13 +40,13 @@ class GlobalHandler:
         self.season_override = None
         self.provider = None
         self.episode_override = None
-        self.max_concurrent_downloads = 5
+        self.max_concurrent_downloads = 2
         self.max_retries = 4
         self.wait_time = 30
         self.disable_wait_threads = False
         self.output_dir = "output"
         self.site_url = {"serie": "https://s.to/serie","anime": "https://aniworld.to/anime"}
-        self.provider_priority = ["VOE", "Streamtape", "Vidoza", "SpeedFiles"]
+        self.provider_priority = ["VOE", "Streamtape", "Vidoza", "SpeedFiles", "Doodstream"] # This var is not in use yet.
         self.url = None
         self.APP_VERSION = "v03-00"
 
