@@ -1,4 +1,3 @@
-/test/
 /.idea/
 /logs/
 *.zip
@@ -6,8 +5,7 @@
 *__pycache__
 /temp/
 /output/
+/src/output/
 .DS_Store
-ffmpeg.exe
-ffmpeg
 /src/ffmpeg.exe
 /src/ffmpeg
