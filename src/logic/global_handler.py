@@ -61,48 +61,50 @@ class GlobalHandler:
         if len(argv) == 1:
             return False
         for arg in argv[1:]:
-            if "--media" in arg:
-                self.media = arg.split("=")[1]
-            elif "--name" in arg:
-                self.name = arg.split("=")[1]
-            elif "--download_lang" in arg:
-                lang = arg.split("=")[1]
-                if lang == "Deutsch":
-                    lang = 1
-                elif lang == "Eng-Sub":
-                    lang = 2
-                elif lang == "Ger-Sub":
-                    lang = 3
-                else:
-                    print("Invalid Language. Supported Languages: Deutsch, Eng-Sub, Ger-Sub")
-                    exit()
-                self.download_lang = lang
-            elif "--dl-mode" in arg:
-                self.dl_mode = arg.split("=")[1]
-            elif "--season_override" in arg:
-                self.season_override = arg.split("=")[1]
-            elif "--provider" in arg:
-                self.provider = arg.split("=")[1]
-            elif "--episode_override" in arg:
-                self.episode_override = arg.split("=")[1]
-            elif "--max_concurrent_downloads" in arg:
-                self.max_concurrent_downloads = arg.split("=")[1]
-            elif "--max_retries" in arg:
-                self.max_retries = arg.split("=")[1]
-            elif "--wait_time" in arg:
-                self.wait_time = arg.split("=")[1]
-            elif "--disable_wait_threads" in arg:
-                self.disable_wait_threads = arg.split("=")[1]
-            elif "--output_dir" in arg:
-                self.output_dir = arg.split("=")[1]
-            elif "--help" in arg:
+            if arg == "--help":
                 print(help_options)
                 exit()
-            elif "--debug_logging" in arg:
-                debug_logging = arg.split("=")[1]
-                print("Debug Logging: ", debug_logging)
-                if debug_logging == "True":
-                    global debug_log
-                    debug_log = True
+            match arg.split("=")[0]:
+                case "--media":
+                    self.media = arg.split("=")[1]
+                case "--name":
+                    self.name = arg.split("=")[1]
+                case "--download_lang":
+                    lang = arg.split("=")[1]
+                    match lang:
+                        case "Deutsch":
+                            lang = 1
+                        case "Eng-Sub":
+                            lang = 2
+                        case "Ger-Sub":
+                            lang = 3
+                        case _:
+                            print("Invalid Language. Supported Languages: Deutsch, Eng-Sub, Ger-Sub")
+                            exit()
+                    self.download_lang = lang
+                case "--dl-mode":
+                    self.dl_mode = arg.split("=")[1]
+                case "--season_override":
+                    self.season_override = arg.split("=")[1]
+                case "--provider":
+                    self.provider = arg.split("=")[1]
+                case "--episode_override":
+                    self.episode_override = arg.split("=")[1]
+                case "--max_concurrent_downloads":
+                    self.max_concurrent_downloads = arg.split("=")[1]
+                case "--max_retries":
+                    self.max_retries = arg.split("=")[1]
+                case "--wait_time":
+                    self.wait_time = arg.split("=")[1]
+                case "--disable_wait_threads":
+                    self.disable_wait_threads = arg.split("=")[1]
+                case "--output_dir":
+                    self.output_dir = arg.split("=")[1]
+                case "--debug_logging":
+                    debug_logging = arg.split("=")[1]
+                    print("Debug Logging: ", debug_logging)
+                    if debug_logging == "True":
+                        global debug_log
+                        debug_log = True
         self.url = "{}/stream/{}/".format(self.site_url[self.media], self.name)
         return True
