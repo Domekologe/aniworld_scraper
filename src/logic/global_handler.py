@@ -106,5 +106,8 @@ class GlobalHandler:
                     if debug_logging == "True":
                         global debug_log
                         debug_log = True
+                case _:
+                    print("Invalid Argument: ", arg)
+                    exit()
         self.url = "{}/stream/{}/".format(self.site_url[self.media], self.name)
         return True
