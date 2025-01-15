@@ -1,3 +1,4 @@
+import base64
 import random
 import string
 import subprocess
@@ -16,9 +17,11 @@ logger = Logger()
 
 from logic.global_handler import GlobalHandler
 
-VOE_PATTERNS = [re.compile(r"'hls': '(?P<url>.+)'"),
-                re.compile(r'prompt\("Node",\s*"(?P<url>[^"]+)"'),
-                re.compile(r"window\.location\.href = '([^']+)'")]
+VOE_PATTERNS = [
+    re.compile(r"'hls': '(?P<url>.+)'"),
+    re.compile(r'prompt\("Node",\s*"(?P<url>[^"]+)"'),
+    re.compile(r"window\.location\.href = '(?P<url>[^']+)'")
+]
 STREAMTAPE_PATTERN = re.compile(r'get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[^&\'\s]+&token=[^&\'\s]+\'')
 DOODSTREAM_PATTERN_URL = re.compile(r"'(?P<url>/pass_md5/[^'.*]*)'")
 DOODSTREAM_PATTERN_TOKEN = re.compile(r"token=(?P<token>[^&.*]*)&")
@@ -339,12 +342,27 @@ def start_download(url, provider, output_dir):
             )
             req_body = urllib.request.urlopen(req).read().decode('utf-8')
             dood_hash = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
-            current_milli_time = int(round(time.time() * 1000))
-            cache_link = f"{req_body}{dood_hash}?token={match_token.group('token')}&expiry={current_milli_time}"
+            expiry = int(round(time.time() * 1000)) + 50
+            cache_link = f"{req_body}{dood_hash}?token={match_token.group('token')}&expiry={expiry}"
             logger.log("DEBUG",f"Video URL: {cache_link}")
         else:
             logger.log("ERROR", "Could not find Doodstream URL.")
             return False
+    elif provider == "VOE":
+        html_page = html_page.read().decode('utf-8')
+        for pattern in VOE_PATTERNS:
+            match = pattern.search(html_page)
+            if match:
+                cache_link = match.group('url')
+                break
+        if not "node" in cache_link:
+            new_page = urllib.request.urlopen(cache_link).read().decode('utf-8')
+            for pattern in VOE_PATTERNS:
+                match = pattern.search(new_page)
+                if match:
+                    cache_link_b64 = match.group('url')
+                    cache_link = base64.b64decode(cache_link_b64).decode('utf-8')
+                    break
     else:
         logger.log("ERROR", "Provider not supported.")
         return False
