@@ -12,9 +12,7 @@ import sys
 from jsbeautifier.unpackers import UnpackingError
 from bs4 import BeautifulSoup
 
-from logic.logging_handler import Logger
-logger = Logger()
-
+from logic.logging_handler import logger
 from logic.global_handler import GlobalHandler
 
 VOE_PATTERNS = [

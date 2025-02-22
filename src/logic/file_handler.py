@@ -1,8 +1,7 @@
 import os
 import shutil
 
-from logic.logging_handler import Logger
-logger = Logger()
+from logic.logging_handler import logger
 
 from logic.global_handler import GlobalHandler
 

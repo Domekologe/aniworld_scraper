@@ -1,5 +1,4 @@
-from logic.logging_handler import Logger, get_translation
-logger = Logger()
+from logic.logging_handler import logger, get_translation
 
 from logic.global_handler import GlobalHandler
 from logic.file_handler import check_write_perms, check_for_ffmpeg, create_output_folder, check_if_already_downloaded
@@ -23,7 +22,7 @@ def user_interface():
     if lang == "q":
         exit()
     interface_language = "en" if lang == "1" else "de"
-    Logger().lang = interface_language
+    #Logger().lang = interface_language
     # todo fix what ever you did here
 
     logger.log("INFO", get_translation("language_selected", values=[interface_language]))

@@ -1,5 +1,4 @@
-from logic.logging_handler import Logger
-logger = Logger()
+from logic.logging_handler import logger
 import urllib.request
 from urllib.error import URLError
 

@@ -1,9 +1,10 @@
 import datetime
 import os
 import sys
+import threading
 import traceback
+from typing import Optional, Any
 
-debug_log = False
 translation_table = {
     'en': {
         'language_list': 'Available languages: 1: English, 2: German, q: Quit',
@@ -95,10 +96,10 @@ def get_translation(message, language=None, values=None):
 
     return translation
 
-
-
-
 class Logger:
+    _instance = None
+    _lock = threading.Lock()
+
     LEVELS = {
         'DEBUG': '\033[94m',
         'INFO': '\033[92m',
@@ -109,35 +110,36 @@ class Logger:
     }
     RESET = '\033[0m'
 
-    def __init__(self):
+    def __new__(cls, log_dir: str = 'logs', debug_logging: bool = False):
+        if not cls._instance:
+            with cls._lock:
+                if not cls._instance:
+                    cls._instance = super(Logger, cls).__new__(cls)
+                    cls._instance._init(log_dir, debug_logging)
+        return cls._instance
+
+    def _init(self, log_dir: str, debug_logging: bool) -> None:
         date_str = datetime.datetime.now().strftime('%Y-%m-%d')
-        self.log_dir = 'logs'
+        self.log_dir = log_dir
         self.log_file = os.path.join(self.log_dir, f'log_{date_str}.log')
-        self.debug_logging = debug_log
-        #  todo: Translate for OS.Lang?
-        self.lang = "en"
-        self.success_items = None
-        self.error_items = None
-        if not os.path.exists(self.log_dir):
-            os.makedirs(self.log_dir)
+        self.debug_logging = debug_logging
+        os.makedirs(self.log_dir, exist_ok=True)
 
-    def __setitem__(self, key, value):
-        setattr(self, key, value)
+        self.success_items = []
+        self.error_items = []
+        self._file_lock = threading.Lock()
 
-    def __getitem__(self, key):
-        return getattr(self, key)
+    def set_debug_mode(self, debug: bool) -> None:
+        self.debug_logging = debug
+        self.log('INFO', f"Debug mode set to {'ON' if debug else 'OFF'}.")
 
-    def add_error_item(self, item):
-        if not self.error_items:
-            self.error_items = []
+    def add_error_item(self, item: Any) -> None:
         self.error_items.append(item)
 
-    def add_success_item(self, item):
-        if not self.success_items:
-            self.success_items = []
+    def add_success_item(self, item: Any) -> None:
         self.success_items.append(item)
 
-    def log(self, level, message):
+    def log(self, level: str, message: str, exc_info: Optional[Exception] = None) -> None:
         if level not in self.LEVELS:
             raise ValueError(f"Invalid log level: {level}")
         if not self.debug_logging and level == 'DEBUG':
@@ -148,15 +150,23 @@ class Logger:
         func_name = frame.f_code.co_name
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         log_message = f"{timestamp} - {level} - {file_name} - {func_name} - {message}"
-        print(f"{self.LEVELS[level]}{log_message}{self.RESET}")
-        with open(self.log_file, 'a') as f:
-            f.write(log_message + '\n')
+
+        if exc_info:
+            log_message += f"\n{traceback.format_exc()}"
+        with self._lock:
+            print(f"{self.LEVELS[level]}{log_message}{self.RESET}")
+        try:
+            with self._file_lock:
+                with open(self.log_file, 'a', encoding='utf-8') as f:
+                    f.write(log_message + '\n')
+        except Exception as e:
+            print(f"{self.LEVELS['ERROR']}Failed to write to log file: {e}{self.RESET}")
 
     def exception(self, message):
         exc_info = traceback.format_exc()
         self.log('EXCEPTION', f"{message}\n{exc_info}")
 
-    def end_logging(self):
+    def end_logging(self) -> None:
         self.log('INFO', 'Logging finished.')
         if self.success_items:
             self.log('INFO', 'Success items:')
@@ -168,6 +178,8 @@ class Logger:
                 self.log('ERROR', str(item))
         self.log('INFO', 'Downloads may still be running in the background.')
 
+
+logger = Logger()
 # Example usage:
 # logger = Logger()
 # logger.log('INFO', 'This is an info message.')

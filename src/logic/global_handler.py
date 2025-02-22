@@ -1,6 +1,6 @@
-from logic.logging_handler import Logger
-logger = Logger()
 from sys import argv
+
+from logic.logging_handler import logger
 
 help_options = """
 Aniworld Scraper.
@@ -24,7 +24,7 @@ Optional Parameters:
 --wait_time=Number
 --disable_wait_threads=True/False
 --output_dir=Path
---debug_logging=True/False
+--debug_logging
 -------------------------------------------------
 """
 def __get_lang__():
@@ -101,11 +101,7 @@ class GlobalHandler:
                 case "--output_dir":
                     self.output_dir = arg.split("=")[1]
                 case "--debug_logging":
-                    debug_logging = arg.split("=")[1]
-                    print("Debug Logging: ", debug_logging)
-                    if debug_logging == "True":
-                        global debug_log
-                        debug_log = True
+                    logger.set_debug_mode(True)
                 case _:
                     print("Invalid Argument: ", arg)
                     exit()
