@@ -46,7 +46,7 @@ EXAMPLE: `python start_app.py --media=anime --name=angels-of-death --download_la
 (will not work if disable_wait_threads is set to True)
 - `--disable_wait_threads=True/False` : Choose weather to wait for downloads to finish before starting new ones or not.
 - `--output_dir=Path` : Choose the output directory for the downloads.
-- `--debug_logging=True/False` : Choose weather to enable debug logging.
+- `--debug_logging` : Toggle Debug logging messages.
 
 EXAMPLE: `python start_app.py --media=anime --name=angels-of-death --download_lang=Deutsch --dl-mode=All --season_override=1 --provider=VOE --episode_override=1 --max_concurrent_downloads=5 --max_retries=3 --wait_time=30 --disable_wait_threads=False --output_dir=output --debug_logging=True`
 
