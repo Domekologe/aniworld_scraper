@@ -1,11 +1,6 @@
-# ARCHIVED PROJECT NOTICE
+# Is this a continuation of the project?
 
-⚠️ This project is no longer maintained.
-Why?
-
-I haven't watched a anime in more then a year and couldn’t find a maintainable way to rebuild this project with a cleaner codebase.
-
-If you find anything useful here, feel free to use it in your own projects.
+No, this is not an official continuation of the project. I contributed some parts to the main project and after it is now archived, I will start to continue the work I already made, after I use this application.
 
 # Anime/Series Scraper
 
