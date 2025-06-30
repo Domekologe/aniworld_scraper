@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Fallback detection for python
+if command -v python3 &>/dev/null; then
+    PYTHON_CMD="python3"
+elif command -v python &>/dev/null; then
+    PYTHON_CMD="python"
+else
+    echo "Python is not installed or not found in PATH."
+    exit 1
+fi
+
+
+
 SCRIPT_PATH="main.py"
 TYPE="anime"
 NAME="Name-Goes-Here"
@@ -196,7 +208,16 @@ case $selectedProvider in
 esac
 echo ""
 
+echo "Enter a custom path or press Enter to use default (\"output\"):"
+read -p " > " PATH_OVERRIDE
+if [ -z "$PATH_OVERRIDE" ]; then
+    PATH_OVERRIDE="output"
+fi
+
+echo ""
+
+
 for ((i=1; i<=NUM_RUNS; i++))
 do
-    python3 "$SCRIPT_PATH" --type "$TYPE" --name "$NAME" --lang "$LANGUAGE" --dl-mode "$DLMODE" --season-override "$SEASON" --provider "$PROVIDER"
+    $PYTHON_CMD "$SCRIPT_PATH" --type "$TYPE" --name "$NAME" --lang "$LANGUAGE" --dl-mode "$DLMODE" --season-override "$SEASON" --provider "$PROVIDER" --path-override "$PATH_OVERRIDE"
 done

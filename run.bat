@@ -2,6 +2,21 @@
 chcp 850 >nul
 cls
 
+:: Detect Python executable
+where python >nul 2>&1
+if %errorlevel%==0 (
+    set PYTHON_CMD=python
+) else (
+    where python3 >nul 2>&1
+    if %errorlevel%==0 (
+        set PYTHON_CMD=python3
+    ) else (
+        echo Neither python nor python3 was found in PATH.
+        pause
+        exit /b 1
+    )
+)
+
 echo Select your Display Language:
 echo Waehle deine Anzeige-Sprache:
 echo.
@@ -33,6 +48,12 @@ set provider_header=Select the provider to download from:
 set provider_desc=Default provider is VOE.
 set start_scraper=Starting the scraper...
 set finish_scraper=Download completed!
+
+REM ADDING PATH
+set path_question=Do you want to use the default path or a custom one?
+set path_echo=(Press Enter to use default: "output")
+set path_invalid=Invalid choice. Using default path.
+
 goto start
 
 :ger
@@ -56,6 +77,13 @@ set provider_header=Waehle den Anbieter aus, von dem du herunterladen moechtest:
 set provider_desc=Standardanbieter ist VOE.
 set start_scraper=Scraper wird gestartet...
 set finish_scraper=Herunterladen abgeschlossen!
+
+REM ADDING PATH
+set path_question=Moechtest du den Standardpfad oder einen eigenen Pfad verwenden?
+set path_echo=(Druecke Enter für den Standard: "output")
+set path_invalid=Ungueltige Eingabe. Standardpfad wird verwendet.
+
+
 goto start
 
 :start
@@ -120,9 +148,18 @@ if %PROVIDER%==2 set PROVIDER=Vidoza
 if %PROVIDER%==3 set PROVIDER=Streamtape
 cls
 echo.
+
+
+echo %path_question%
+echo %path_echo%
+set /p CUSTOM_PATH=%path_input%
+if "%CUSTOM_PATH%"=="" set "CUSTOM_PATH=output"
+
+cls
+echo.
 echo %start_scraper%
 
 set SCRIPT_PATH=main.py
-python %SCRIPT_PATH% --type %TYPE% --name %NAME% --lang %LANGUAGUE% --dl-mode %DLMODE% --season-override %SEASON% --provider %PROVIDER%
+%PYTHON_CMD% %SCRIPT_PATH% --type %TYPE% --name %NAME% --lang %LANGUAGUE% --dl-mode %DLMODE% --season-override %SEASON% --provider %PROVIDER% --path-override %CUSTOM_PATH%
 echo %finish_scraper%
 PAUSE

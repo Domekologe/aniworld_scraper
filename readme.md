@@ -2,6 +2,8 @@
 
 No, this is not an official continuation of the project. I contributed some parts to the main project and after it is now archived, I will start to continue the work I already made, after I use this application.
 
+## Original made by @wolfswolke
+
 # Anime/Series Scraper
 
 This tool enables you to scrape and download all seasons and episodes of anime from Aniworld.to or series from SerienStream (S.to).
@@ -34,6 +36,7 @@ You can:
   - `NUM`: Download only the specified season.
   - `NUM+`: Download this season and all subsequent seasons.
 - `--provider <ProviderOverride>`: Specify the content provider (e.g., VOE, Streamtape, or Vidoza).
+- `--path-override <folderName/path>`: Specify the output folder name or complete path (e.g., "myfav", "C:\Temp\myfav"). If nothing will be set, the default output path will be used
 
 ## Manual Download
 If errors occur or only specific episodes are needed, use the `Manual_download.py` script:

@@ -34,7 +34,7 @@ Before contributing, please review our [Code of Conduct](CODE_OF_CONDUCT.md). We
 
 ### Creating Issues
 
-If you find a bug, have a feature request, or want to suggest an improvement, please create an issue in the [GitHub issue tracker](https://github.com/wolfswolke/Aniworld_Scraper/issues). Clearly describe the problem or the proposed enhancement so that others can understand and collaborate.
+If you find a bug, have a feature request, or want to suggest an improvement, please create an issue in the [GitHub issue tracker](https://github.com/Domekologe/aniworld_scraper/issues). Clearly describe the problem or the proposed enhancement so that others can understand and collaborate.
 
 ### Working on Issues
 
@@ -59,11 +59,11 @@ To maintain consistency and readability of the codebase, please adhere to the fo
 
 ## Reporting Bugs
 
-If you encounter a bug or unexpected behavior while using Aniworld_Scraper, please report it in the [GitHub issue tracker](https://github.com/wolfswolke/Aniworld_Scraper/issues) with clear steps to reproduce the issue. Attach any relevant logs or error messages that can help identify the problem.
+If you encounter a bug or unexpected behavior while using Aniworld_Scraper, please report it in the [GitHub issue tracker](https://github.com/Domekologe/aniworld_scraper/issues) with clear steps to reproduce the issue. Attach any relevant logs or error messages that can help identify the problem.
 
 ## Feature Requests
 
-If you have an idea for a new feature or enhancement, feel free to create an issue in the [GitHub issue tracker](https://github.com/wolfswolke/Aniworld_Scraper/issues) explaining your proposal and how it would benefit the project.
+If you have an idea for a new feature or enhancement, feel free to create an issue in the [GitHub issue tracker](https://github.com/Domekologe/aniworld_scraper/issues) explaining your proposal and how it would benefit the project.
 
 ## License
 

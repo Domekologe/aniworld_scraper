@@ -3,7 +3,7 @@ name: Feature request
 about: Feature request
 title: "[REQUEST] "
 labels: enhancement
-assignees: wolfswolke
+assignees: domekologe
 
 ---
 

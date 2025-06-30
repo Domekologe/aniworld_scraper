@@ -1,5 +1,7 @@
 import sys
+import os
 import re
+import argparse
 
 from src.custom_logging import setup_logger
 
@@ -54,26 +56,69 @@ def get_arg(name: str, default: str | int = None):
 # ------------------------------------------------------- #
 #                   definitions
 # ------------------------------------------------------- #
-APP_VERSION = "v02-18"
+APP_VERSION = "v02-19"
 
 # ------------------------------------------------------- #
-#                   global variables
+#                   argparse config
 # ------------------------------------------------------- #
-type_of_media = parse_cli_arguments("anime", 1) if use_old_parse else get_arg("TYPE", "anime") # choose 'serie' or 'anime'
-name = parse_cli_arguments("Name-Goes-Here", 2) if use_old_parse else get_arg("NAME", "Name-Goes-Here")
-language = parse_cli_arguments("Deutsch", 3) if use_old_parse else get_arg("LANG", "Deutsch")
-dlMode = parse_cli_arguments("Series", 4) if use_old_parse else get_arg("MODE", "Series")  # Options: Movies, Series, All
-season_override = parse_cli_arguments(0, 5) if use_old_parse else get_arg("SEASON", 0)  # 0 = no override. 1 = season 1. etc...
-cliProvider = parse_cli_arguments("VOE", 6) if use_old_parse else get_arg("PROVIDER", "VOE")  # 0 = no override. 1 = season 1. etc...
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--type', '-t', type=str, default='anime', choices=['serie', 'anime'])
+parser.add_argument('--name', '-n', type=str, default='Name-Goes-Here')
+parser.add_argument('--lang', '-l', type=str, default='Deutsch', choices=['Deutsch', 'Ger-Sub', 'English'])
+parser.add_argument('--dl-mode', '-m', type=str, default='Series', choices=['Series', 'Movies', 'All'])
+parser.add_argument('--season-override', '-s', type=int, default=0)
+parser.add_argument('--provider', '-p', type=str, default='VOE', choices=['VOE', 'Streamtape', 'Vidoza'])
+parser.add_argument('--path-override', type=str)  # No default → allows detection if argument was provided
+
+args = parser.parse_args()
+
+
+
+
+type_of_media = args.type
+name = args.name
+language = args.lang
+dlMode = args.dl_mode
+season_override = args.season_override
+cliProvider = args.provider
+
+# Determine output root based on --path-override argument
+if args.path_override:
+    logger.info(f"--path-override set: {args.path_override}")
+    # Check if absolute path (e.g. D:\ or /something)
+    if os.path.isabs(args.path_override) or (len(args.path_override) > 1 and args.path_override[1] == ':'):
+        # Absolute path → use as root
+        output_root = args.path_override
+        logger.info(f"Using absolute path: {output_root}")
+    else:
+        # Relative path → use under project directory
+        output_root = os.path.join(os.getcwd(), args.path_override)
+        logger.info(f"Using relative path (project directory): {output_root}")
+else:
+    # No argument provided → use default "output" under project directory
+    output_root = os.path.join(os.getcwd(), "output")
+    logger.info(f"--path-override not set, using default path: {output_root}")
+    
+output_name = name
+output_path = os.path.join(output_root, output_name)
+
+# Other global settings
 episode_override = 0  # 0 = no override. 1 = episode 1. etc...
 ddos_protection_calc = 5
 ddos_wait_timer = 60  # in seconds
 max_download_threads = 5 # This does NOT limit the threads but won't start more when the DDOS Timer starts.
 thread_download_wait_timer = 30  # in seconds
 disable_thread_timer = False # If true the script will start downloads as soon as the ddos protection is over.
-output_root = "output"
-output_name = name
-output_path = f"{output_root}/{type_of_media}/{output_name}"
+#output_root = path_override  
+
+if os.path.isabs(args.path_override) or (len(args.path_override) > 1 and args.path_override[1] == ':'):
+    output_root = args.path_override
+    is_absolute_override = True
+else:
+    output_root = os.path.join(os.getcwd(), args.path_override or "output")
+    is_absolute_override = False
+
 site_url = {
     "serie": "https://s.to",  # maybe you need another dns to be able to use this site
     "anime": "https://aniworld.to"

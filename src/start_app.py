@@ -7,7 +7,8 @@ from time import sleep
 from src.constants import (APP_VERSION, ddos_protection_calc, ddos_wait_timer,
                            language, name, output_path, season_override,
                            site_url, type_of_media, url, dlMode, cliProvider, output_root, output_name,
-                           thread_download_wait_timer, max_download_threads, disable_thread_timer)
+                           thread_download_wait_timer, max_download_threads, disable_thread_timer, is_absolute_override)
+
 from src.custom_logging import setup_logger
 from src.logic.collect_all_seasons_and_episodes import get_episodes, get_season, get_movies
 from src.logic.downloader import already_downloaded, create_new_download_thread
@@ -62,7 +63,7 @@ def main():
     # Check if FFMPEG is installed before even trying to download episodes
     if not is_ffmpeg_installed():
         logger.error("FFMPEG is not installed or could not be run. You can download it at https://ffmpeg.org/")
-        exit()
+        exit()#
 
     # if user wants to download all seasons starting from X it would be X+ so 2+ would be 2,3,4...
     str_season_override = str(season_override)
@@ -84,7 +85,18 @@ def main():
             seasons = 1
 
     year = get_year(url)
-    output_path = f"{output_root}/{type_of_media}/{output_name}_({year})"
+    
+    
+    
+    #output_path = f"{output_root}/{type_of_media}/{output_name}_({year})"
+    if is_absolute_override or args.path_override:
+    # If override was used (absolute OR relative) → skip type
+        output_path = f"{output_root}/{output_name}_({year})"
+    else:
+        # Default output → include type_of_media
+        output_path = f"{output_root}/{type_of_media}/{output_name}_({year})"
+
+
     os.makedirs(output_path, exist_ok=True)
 
     threadpool = []
