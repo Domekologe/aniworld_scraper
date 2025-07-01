@@ -61,23 +61,46 @@ def download_and_convert_hls_stream(hls_url, file_name):
     else:
         ffmpeg_path = "ffmpeg"
 
-    try:
-        tmp_file_name = file_name.replace(".mp4", "_tmp.mp4")
-        if path.exists(tmp_file_name):
-            os.remove(tmp_file_name)
-            logger.info("Found broken download. Removed {}.".format(tmp_file_name))
-        ffmpeg_cmd = [ffmpeg_path, '-i', hls_url, '-c', 'copy', tmp_file_name]
-        if platform.system() == "Windows":
-            subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        else:
-            subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        os.rename(tmp_file_name, file_name)
-        logger.success("Finished download of {}.".format(file_name))
-        append_success(file_name)
-    except subprocess.CalledProcessError as e:
-        logger.error("Server error. Could not download {}. Please manually download it later.".format(file_name))
-        append_failure(file_name)
-        remove_file(file_name)
+    tmp_file_name = file_name.replace(".mp4", "_tmp.mp4")
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            if path.exists(tmp_file_name):
+                os.remove(tmp_file_name)
+                logger.info(f"Found broken download. Removed {tmp_file_name}.")
+            
+            ffmpeg_cmd = [ffmpeg_path, '-i', hls_url, '-c', 'copy', tmp_file_name]
+
+            logger.info(f"[Attempt {attempt}/{MAX_RETRIES}] Downloading HLS stream to temp file...")
+
+            if platform.system() == "Windows":
+                subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            else:
+                subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            if path.exists(tmp_file_name) and path.getsize(tmp_file_name) > 0:
+                os.rename(tmp_file_name, file_name)
+                logger.success(f"Finished download of {file_name}.")
+                append_success(file_name)
+                return
+            else:
+                logger.warning(f"Attempt {attempt}: Temp file {tmp_file_name} is empty.")
+
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"Attempt {attempt}: FFmpeg error while downloading {file_name}: {e}")
+
+        # Retry delay
+        if attempt < MAX_RETRIES:
+            logger.info(f"Retrying HLS download of {file_name} in 10 seconds...")
+            time.sleep(10)
+
+    # If all tries fails
+    logger.error(f"Server error. Could not download {file_name} after {MAX_RETRIES} attempts.")
+    append_failure(file_name)
+    remove_file(file_name)
+    if path.exists(tmp_file_name):
+        os.remove(tmp_file_name)
+
 
 
 def create_new_download_thread(url, file_name, provider) -> Thread:
