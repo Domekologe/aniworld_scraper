@@ -3,11 +3,14 @@ import time
 import subprocess
 from threading import active_count
 from time import sleep
+from dataclasses import dataclass
 
-from src.constants import (APP_VERSION, ddos_protection_calc, ddos_wait_timer,
-                           language, name, output_path, season_override,
-                           site_url, type_of_media, url, dlMode, cliProvider, output_root, output_name,
-                           thread_download_wait_timer, max_download_threads, disable_thread_timer, is_absolute_override)
+
+from src.constants import (
+    APP_VERSION, ddos_protection_calc, ddos_wait_timer, thread_download_wait_timer,
+    max_download_threads, disable_thread_timer, provider_priority, resolve_output_root,
+    build_url, site_url
+)
 
 from src.custom_logging import setup_logger
 from src.logic.collect_all_seasons_and_episodes import get_episodes, get_season, get_movies
@@ -18,6 +21,22 @@ from src.failures import write_fails
 from src.successes import write_success
 
 logger = setup_logger(__name__)
+
+# ------------------------------
+# Pre Adding for GUI
+# ------------------------------
+
+@dataclass
+class CLIArgs:
+    type: str
+    name: str
+    lang: str
+    dl_mode: str
+    season_override: int
+    provider: str
+    path_override: str | None
+
+
 
 def is_ffmpeg_installed():
     # Attempt to execute ffmpeg
@@ -32,7 +51,20 @@ def is_ffmpeg_installed():
 #                       main
 # ------------------------------------------------------- #
 
-def main():
+def main(args):
+    
+    type_of_media = args.type
+    name = args.name
+    language = args.lang
+    dlMode = args.dl_mode
+    season_override = args.season_override
+    cliProvider = args.provider
+
+    output_root, is_absolute_override = resolve_output_root(args.path_override)
+    output_name = name
+    url = build_url(type_of_media, name)
+    
+    
     ddos_start_value = 0
 
     logger.info("------------- AnimeSerienScraper {} started ------------".format(APP_VERSION))

@@ -2,7 +2,7 @@ import os
 import platform
 import subprocess
 import time
-from os import path
+from os import path, remove
 from threading import Thread
 
 import requests
@@ -13,6 +13,7 @@ from src.successes import append_success
 
 logger = setup_logger(__name__)
 
+MAX_RETRIES = 3
 
 def already_downloaded(file_name):
     if os.path.exists(file_name) and os.path.getsize(file_name) > 0:
@@ -24,26 +25,32 @@ def already_downloaded(file_name):
 
 def download(link, file_name):
     retry_count = 0
-    while True:
-        logger.debug("Entered download with these vars: Link: {}, File_Name: {}".format(link, file_name))
-        r = requests.get(link, stream=True)
-        with open(file_name, 'wb') as f:
-            for chunk in r.iter_content(1024):
-                f.write(chunk)
-        if path.getsize(file_name) != 0:
-            logger.success("Finished download of {}.".format(file_name))
-            append_success(file_name)
-            break
-        elif retry_count == 1:
-            logger.error("Server error. Could not download {}. Please manually download it later.".format(file_name))
-            append_failure(file_name)
-            remove_file(file_name)
-            break
-        else:
-            logger.info("Download did not complete! File {} will be retryd in a few seconds.".format(file_name))
-            logger.debug("URL: {}, filename {}".format(link, file_name))
-            time.sleep(20)
-            retry_count = 1
+    while retry_count < MAX_RETRIES:
+        logger.debug(f"Attempt {retry_count + 1}: Link: {link}, File_Name: {file_name}")
+        try:
+            r = requests.get(link, stream=True, timeout=10)
+            r.raise_for_status()
+            with open(file_name, 'wb') as f:
+                for chunk in r.iter_content(1024):
+                    f.write(chunk)
+            if path.getsize(file_name) > 0:
+                logger.success(f"Finished download of {file_name}.")
+                append_success(file_name)
+                return
+            else:
+                logger.warning(f"Downloaded file {file_name} is empty.")
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Request failed for {file_name}: {e}")
+        
+        retry_count += 1
+        if retry_count < MAX_RETRIES:
+            logger.info(f"Retrying download of {file_name} in 10 seconds...")
+            time.sleep(10)
+    
+    logger.error(f"Server error. Could not download {file_name}. Please manually download it later.")
+    append_failure(file_name)
+    if path.exists(file_name):
+        remove(file_name)
 
 
 def download_and_convert_hls_stream(hls_url, file_name):
