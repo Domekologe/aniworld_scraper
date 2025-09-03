@@ -1,3 +1,6 @@
+# I recommend using this downloader: https://github.com/phoenixthrush/AniWorld-Downloader
+This have more possibilities!
+
 # Is this a continuation of the project?
 
 No, this is not an official continuation of the project. I contributed some parts to the main project and after it is now archived, I will start to continue the work I already made, after I use this application.
